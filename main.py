@@ -50,7 +50,7 @@ class Assistant:
         self._last_activity = time.monotonic()
         self._last_idle_refresh = 0.0
         self._state_entered_at = 0.0
-        self._tts = TTSPlayer() if config.ENABLE_TTS else None
+        self._tts = TTSPlayer() if 1==2 else None
         self._conversation_history: list[dict] = []
 
     def _is_stale(self, my_gen: int) -> bool:
