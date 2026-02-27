@@ -23,6 +23,7 @@ from transcribe_openai import transcribe
 from openclaw_client import stream_response
 from button_ptt import ButtonPTT, State
 from tts_openai import TTSPlayer
+from gemini_ollama import upload_and_generate, get_response, generate_gemini_speech
 
 
 class Assistant:
@@ -160,7 +161,7 @@ class Assistant:
                 accent_color=(255, 180, 0),
             )
         t0 = time.monotonic()
-        transcript = transcribe(wav_path)
+        transcript = upload_and_generate()
         log.info("transcribe took %.1fs => %r", time.monotonic() - t0, (transcript[:80] if transcript else "(empty)"))
 
         if not transcript or self._is_stale(my_gen):
@@ -183,7 +184,13 @@ class Assistant:
         tts_buffer = ""
         stream_t0 = time.monotonic()
 
-        for delta in stream_response(transcript, history=self._conversation_history):
+        answer = get_response(transcript)
+        pattern = r'(?:.*?[.!?](?:\s+|$)){1,3}'
+        # re.findall extracts all matches based on the pattern
+        groups = re.findall(pattern, answer.strip())
+        sentence_split = [group.strip() for group in groups if group.strip()]
+
+        for sentence_grp in sentence_split:
             if self._is_stale(my_gen) or self._shutdown.is_set():
                 break
             if first_token:
@@ -199,15 +206,7 @@ class Assistant:
                 self.display.append_response(delta)
 
             # Streaming TTS: batch 2–3 sentences for natural flow
-            if self._tts:
-                tts_buffer += delta
-                sentence_ends = list(re.finditer(r"[.!?]\s|\n", tts_buffer))
-                if len(sentence_ends) >= 2:
-                    cut = sentence_ends[1].end()
-                    chunk = tts_buffer[:cut].strip()
-                    tts_buffer = tts_buffer[cut:]
-                    if chunk:
-                        self._tts.submit(chunk)
+            generate_gemini_speech(sentence_grp)
 
         # Stale worker: exit without touching display, TTS, or history
         if self._is_stale(my_gen):
@@ -217,8 +216,6 @@ class Assistant:
 
         # Submit remaining TTS buffer and wait for playback to finish
         if self._tts:
-            if tts_buffer.strip():
-                self._tts.submit(tts_buffer.strip())
             self._tts.flush()
             self.display.stop_character()
             self.display.set_response_text(full_response)
