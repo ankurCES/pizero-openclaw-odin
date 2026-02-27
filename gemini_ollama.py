@@ -75,9 +75,10 @@ def upload_and_generate():
     try:
         text_output = result['candidates'][0]['content']['parts'][0]['text']
         print("\nGemini Response:\n", text_output)
-        return get_response(text_output)
+        return text_output
     except (KeyError, IndexError):
         print("Error in response:", json.dumps(result, indent=2))
+        return None
 
 def get_response(text):
     print(">>> Requesting response from Ollama Cloud...")
@@ -115,9 +116,11 @@ def get_response(text):
             return answer
         else:
             print("Error in Ollama response format:", json.dumps(result, indent=2))
+            return None
             
     except Exception as e:
         print(f"Ollama Request Failed: {e}")
+        return None
 
 def generate_gemini_speech(text, output_filename="data/answer.wav", voice="Leda"):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key={API_KEY}"
