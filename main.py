@@ -4,6 +4,7 @@ import signal
 import sys
 import threading
 import time
+import subprocess
 
 import config
 
@@ -207,6 +208,7 @@ class Assistant:
 
             # Streaming TTS: batch 2–3 sentences for natural flow
             generate_gemini_speech(sentence_grp)
+            subprocess.run(['aplay', '-D', 'plughw:wm8960soundcard', "data/answer.wav"])
 
         # Stale worker: exit without touching display, TTS, or history
         if self._is_stale(my_gen):
