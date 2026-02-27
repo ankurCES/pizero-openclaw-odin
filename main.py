@@ -205,10 +205,14 @@ class Assistant:
             full_response += sentence_grp
             if not self._tts:
                 self.display.append_response(sentence_grp)
+            
+            # Disable sleep if TTS active
+            time.sleep(3)
 
             # Streaming TTS: batch 2–3 sentences for natural flow
-            generate_gemini_speech(sentence_grp)
-            subprocess.run(['aplay', '-D', 'plughw:wm8960soundcard', "data/answer.wav"])
+            # Disabled TTS By default
+            #generate_gemini_speech(sentence_grp)
+            #subprocess.run(['aplay', '-D', 'plughw:wm8960soundcard', "data/answer.wav"])
 
         # Stale worker: exit without touching display, TTS, or history
         if self._is_stale(my_gen):
