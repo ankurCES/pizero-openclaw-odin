@@ -201,9 +201,9 @@ class Assistant:
                     self.display.stop_spinner()
                     self.display.set_response_text("")
                 first_token = False
-            full_response += delta
+            full_response += sentence_grp
             if not self._tts:
-                self.display.append_response(delta)
+                self.display.append_response(sentence_grp)
 
             # Streaming TTS: batch 2–3 sentences for natural flow
             generate_gemini_speech(sentence_grp)
