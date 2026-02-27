@@ -75,7 +75,7 @@ def upload_and_generate():
     try:
         text_output = result['candidates'][0]['content']['parts'][0]['text']
         print("\nGemini Response:\n", text_output)
-        get_response(text_output)
+        return get_response(text_output)
     except (KeyError, IndexError):
         print("Error in response:", json.dumps(result, indent=2))
 
@@ -111,10 +111,8 @@ def get_response(text):
             answer = result['message']['content']
             print("\nOllama Response:\n", answer)
             
-            if len(answer) < 3000 and "```text" not in answer:
-                generate_gemini_speech(answer)
-            else:
-                generate_gemini_speech("Creating Security Payload. Please wait while I create the payload and execute it!.")
+            #generate_gemini_speech(answer)
+            return answer
         else:
             print("Error in Ollama response format:", json.dumps(result, indent=2))
             
